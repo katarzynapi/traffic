@@ -59,13 +59,13 @@ function [street, streetColorArray, destination, southStreetOut, eastStreetOut, 
                     else
                         street(timeStep, cell) = 0;
                         streetColorArray(timeStep, cell) = streetColorArray(timeStep-1, cell);
-                        destination(timeStep, cell) = destination(timeStep-1, cell)
+                        destination(timeStep, cell) = destination(timeStep-1, cell);
                     end
                 %normal car movement
                 else
                     street(timeStep, cell+distance) = distance;
                     streetColorArray(timeStep, cell+distance) = streetColorArray(timeStep-1, cell);
-                    destination(timeStep, cell+distance) = destination(timeStep-1, cell)
+                    destination(timeStep, cell+distance) = destination(timeStep-1, cell);
                 end
             %stop car when it reaches road end
             else

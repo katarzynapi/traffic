@@ -1,52 +1,6 @@
 %%
 % Model based on Nagel Schreckenberg model
 % Cellular automata simulation of traffic
-% One-way road
-clc
-clear all
-close all
-
-timeStepsNumber = 10;
-cellsNumber = 10;
-trafficArray = zeros(timeStepsNumber, cellsNumber);
-maxVelocity = 5;
-
-for timeStep=2:timeStepsNumber
-    [start,trafficArray] = generateCar(trafficArray,timeStep);
-    for cell=start:cellsNumber
-        % maximal distance that results from previous velocity
-        distance = trafficArray(timeStep-1, cell);
-        % iterate through cells from 1 to maximal distance
-        for step=1:distance
-            % if we are not out of array and we encounter a car on our way
-            % - collision
-            if cell+step <= cellsNumber && trafficArray(timeStep-1, cell+step) ~= 0
-                % modify maximal distance to avoid collision
-                distance = step-1;
-                break
-            end
-        end
-        %if there is no car for our maximal distance -> accelerate (+ 1
-        %unit of velocity), but only when we won't be out of array and our velocity
-        %won't be more than maximal allowed velocity
-        if cell+distance+1 <= cellsNumber && trafficArray(timeStep-1,cell+distance+1) == 0 && distance < maxVelocity
-            distance = distance+1;
-        end
-        %if the cell contains a car
-        if trafficArray(timeStep-1, cell) ~= 0
-            %if car movement won't be out of array
-            if cell+distance <= cellsNumber
-                %move the car of distance value
-                trafficArray(timeStep, cell+distance) = distance;
-            end
-        end
-    end
-end
-trafficArray
-
-%%
-% Model based on Nagel Schreckenberg model
-% Cellular automata simulation of traffic
 % T cross road
 clc
 clear all
@@ -69,12 +23,12 @@ crossStreetColorArray = strings([timeStepsNumber, crossStreetCellsNumber]);
 for timeStep=2:timeStepsNumber
     
     [startPriority, priorityStreet, priorityStreetColorArray, colorIndex] = ...
-        generateCar(priorityStreet, timeStep, priorityStreetColorArray, colorIndex, colorsArray, 0.5);
+        generateCar(priorityStreet, timeStep, priorityStreetColorArray, colorIndex, colorsArray, 0.6);
     [priorityStreet, priorityStreetColorArray] = timeStepMovement(startPriority, priorityStreetCellsNumber, priorityStreet,...
         priorityStreetColorArray, timeStep, maxVelocity, 1)
     
     [startCross, crossStreet, crossStreetColorArray, colorIndex] = ...
-        generateCar(crossStreet, timeStep, crossStreetColorArray, colorIndex, colorsArray, 0.5);
+        generateCar(crossStreet, timeStep, crossStreetColorArray, colorIndex, colorsArray, 0.3);
     [crossStreet, crossStreetColorArray] = timeStepMovement(startCross, crossStreetCellsNumber, crossStreet,...
         crossStreetColorArray, timeStep, maxVelocity, 0)
     
@@ -87,10 +41,10 @@ for timeStep=2:timeStepsNumber
     end
     
 end
-%crossStreet
-%priorityStreet
-%priorityStreetColorArray
-%canGoArray
+crossStreet
+priorityStreet
+priorityStreetColorArray
+canGoArray
 
 % figure
 % for i=1:timeStepsNumber
@@ -138,17 +92,34 @@ figure
 for i=1:timeStepsNumber
     figure
     grid on
-    axis([0 21 -10 3])
+    axis([-2 21 -10 3])
     plot(0:20, zeros(1,21), 'k')
     hold on
     plot(10*ones(1,11), -10:0, 'k')
     priorityVector = 1:priorityStreetCellsNumber;
-    crossVector = -flip(0:crossStreetCellsNumber);
+    crossVector = -flip(1:crossStreetCellsNumber);
+    axis([-2 21 -10 3])
     showStreet(priorityStreetCellsNumber, priorityStreet, priorityStreetColorArray, priorityVector, zeros(1, priorityStreetCellsNumber), i);
+    axis([-2 21 -10 3])
     showStreet(crossStreetCellsNumber, crossStreet, crossStreetColorArray, 10*ones(1, crossStreetCellsNumber), crossVector,  i);
+    axis([-2 21 -10 3])
+    xlabel('cross Street')
+    ylabel('priority Street')
+    title ('T-crossing')
     drawnow
     pause(0.5)
 end
+
+figure
+[densityPriorityStreet] = density(priorityStreet, timeStepsNumber, priorityStreetCellsNumber)
+[densityCrossStreet] = density(crossStreet, timeStepsNumber, crossStreetCellsNumber)
+stem3(priorityVector, zeros(1, priorityStreetCellsNumber), densityPriorityStreet)
+hold on
+stem3(10*ones(1, crossStreetCellsNumber), crossVector, densityCrossStreet)
+hold on
+title('Car number distribution per cell')
+xlabel('cross Street')
+ylabel('priority Street')
 %%
 % Model based on Nagel Schreckenberg model
 % Cellular automata simulation of traffic
@@ -160,7 +131,7 @@ close all
 timeStepsNumber = 240;
 inputStreetCellsNumber = 20;
 roundaboutCellsNumber = 12;
-probability = [0.1*ones(1,timeStepsNumber.*5./24), 0.2*ones(1,timeStepsNumber.*2./24), 0.8*ones(1,timeStepsNumber.*1./24), 0.2*ones(1,timeStepsNumber.*2./24), 0.1*ones(1,timeStepsNumber.*3./24), 0.4*ones(1,timeStepsNumber.*3./24), 0.8*ones(1,timeStepsNumber.*1./24), 0.4*ones(1,timeStepsNumber.*3./24), 0.2*ones(1,timeStepsNumber.*4./24)];
+probability = [0.1*ones(1,timeStepsNumber.*2./24), 0.2*ones(1,timeStepsNumber.*2./24), 0.8*ones(1,timeStepsNumber.*1./24), 0.1*ones(1,timeStepsNumber.*5./24), 0.1*ones(1,timeStepsNumber.*3./24), 0.4*ones(1,timeStepsNumber.*3./24), 0.8*ones(1,timeStepsNumber.*1./24), 0.4*ones(1,timeStepsNumber.*3./24), 0.2*ones(1,timeStepsNumber.*4./24)];
 westStreet = -ones(timeStepsNumber, inputStreetCellsNumber);
 northStreet = -ones(timeStepsNumber, inputStreetCellsNumber);
 eastStreet = -ones(timeStepsNumber, inputStreetCellsNumber);
@@ -291,8 +262,9 @@ for i=1:timeStepsNumber
         axis([-inputStreetCellsNumber-3 inputStreetCellsNumber+3 -inputStreetCellsNumber-3 inputStreetCellsNumber+3])
         grid on
     end
+    title('Roundabout')
     drawnow
-    pause(0.5)
+    pause(0.1)
 end
 
 [densityWest] = density(westStreet, timeStepsNumber, inputStreetCellsNumber)
@@ -319,6 +291,7 @@ stem3(ones(1, inputStreetCellsNumber), flip(eastNorthVector), densityNorthOut)
 %round
 stem3(roundVector, roundValueVector, densityroundabout)
 axis([-14 14 -14 14])
+title('Car number distribution per cell')
 grid on
 
 %%
